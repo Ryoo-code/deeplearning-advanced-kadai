@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <title>画像判定アプリ</title>
+  <!-- カスタムCSSの追加 -->
+  <style>
+    /* 全体のテーブルスタイル */
+    .table {
+      border-collapse: separate; /* セルを分離して下線を強調 */
+      border-spacing: 0; /* スペースを無くす */
+    }
+    /* カテゴリと確率のセルに太い下線を追加 */
+    .table thead th tbody {
+      border-bottom: 1px solid black; /* ヘッダーの下に太い線 */
+    }
+  
+    /* 各セルの下線を調整 */
+    .table tr td {
+      border-bottom: 1px solid black; /* 各行に太い線 */
+    }
+  </style>
+</head>
+<body>
+ <div class="container py-5 text-center">
+    <h2 class="mb-4">画像判定します</h2>
+  <form method="post" enctype="multipart/form-data">
+     <div class="mb-3 text-canter">
+    {% csrf_token %}
+    {{ form.as_p }}
+     <input id="img_data" type="hidden" name="img_data" />
+    <!--</div>-->
+     <!--プレビュー表示エリアの追加-->
+    <img id="preview" style="display: none;" class="img-fluid mb-3 text-center"/>
+    <button type="submit" class="btn btn-primary btn-lg text-center">判定</button>
+     </div>
+  </form>
+  {% if predictions %}
+   <div id="predictions" class="text-center">
+    <hr>
+    <h2 class="mb-4">判定結果</h2>
+    <p>あなたのアップロードした画像の判定結果は以下の通りです。</p>
+     <img src="{{ img_data }}"  class="img-fluid mb-3"> 
+     <table class="table w-50 mx-auto text-canter">
+   
+    <tr>
+      <th>カテゴリ</th>
+      <th>確率</th>
+    </tr>
+    {% for category, probability in predictions %}
+   <tbody>
+    <tr>
+      <td>{{ category }}</td>
+      <td>{{ probability|floatformat:6 }}%</td>
+    </tr>
+  </tbody> 
+    {% endfor %}
+     </table>
+   </div>
+  {% endif %}
+  <!--jqueryライブラリ追加-->
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   <!-- プレビュー機能の実装-->
+    <script>
+      $(function(){
+        //アップロードフォームで新たな画像が選択された際に、関数を実行するように指示//
+        $('#id_image').on('change',function(){
+          //「FileReader」オブジェクトを作成し、「reader」変数に代入//
+        var reader = new FileReader();
+          //「FileReader」が画像を読み込んだ後に実行される関数を定義//
+        reader.onload = function () {
+            $("#preview").attr('src', reader.result);
+            $("#preview").show();
+            $("#img_data").val(reader.result);
+        }
+          //「FileReader」が画像を読み込むための処理です。なお、この記述における「this」はid属性「id_image」である画像アップロードフィールドの要素を差し、「this.files[0]」は選択したファイルを意味//
+        reader.readAsDataURL(this.files[0]);
+        $("#predictions").text('');
+        });
+      });
+    </script>
+</body>
+</html>
